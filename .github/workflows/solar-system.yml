@@ -210,7 +210,7 @@ jobs:
           # Collect VCS details from git and add them to the build
           jf rt build-add-git
           # Publish build info
-          jf rt build-publish ----build-name=solar-system --build-number=$GITHUB_RUN_NUMBER
+          jf rt build-publish --build-name=solar-system --build-number=$GITHUB_RUN_NUMBER
 
 
     docker:
