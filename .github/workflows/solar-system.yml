@@ -193,15 +193,10 @@ jobs:
           mv test-results.xml reports/unit-tests/ || true
           mv cobertura-coverage.xml reports/coverage/ || true
 
-      # - name: Upload Test Results & Coverage to Artifactory
-      #   run: |
-      #     jf rt u "reports/unit-tests/*" "local-solar-system/unit-tests/" --build-name=solar-system --build-number=$GITHUB_RUN_NUMBER
-      #     jf rt u "reports/coverage/*" "local-solar-system/coverage/" --build-name=solar-system --build-number=$GITHUB_RUN_NUMBER
-
       - name: Upload Test Results & Coverage to Artifactory
         run: |
-          jf rt u "reports/unit-tests/*" "local-solar-system/unit-tests/${{ github.sha }}/" --build-name=solar-system --build-number=$GITHUB_RUN_NUMBER
-          jf rt u "reports/coverage/*" "local-solar-system/coverage/${{ github.sha }}/" --build-name=solar-system --build-number=$GITHUB_RUN_NUMBER
+          jf rt u "reports/unit-tests/*" "local-solar-system/unit-tests/" --build-name=solar-system --build-number=$GITHUB_RUN_NUMBER
+          jf rt u "reports/coverage/*" "local-solar-system/coverage/" --build-name=solar-system --build-number=$GITHUB_RUN_NUMBER
 
       - name: Publish Build info With JFrog CLI
         run: |
@@ -210,7 +205,7 @@ jobs:
           # Collect VCS details from git and add them to the build
           jf rt build-add-git
           # Publish build info
-          jf rt build-publish --build-name=solar-system --build-number=$GITHUB_RUN_NUMBER
+          jf rt build-publish 
 
 
     docker:
@@ -228,13 +223,6 @@ jobs:
           with:
             username: ${{ secrets.DOCKERHUB_USERNAME }}
             password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-        # - name: Set up QEMU emulator
-        #   uses: docker/setup-qemu-action@v3
-
-
-        # - name: Set up Docker Buildx
-        #   uses: docker/setup-buildx-action@v3
 
         - name: Docker Build For Testing
           uses: docker/build-push-action@v4
@@ -273,11 +261,15 @@ jobs:
       needs: docker
       uses: ./.github/workflows/reuse-deployment.yml
       secrets: 
+        CI_ROLE: ${{ secrets.CI_ROLE }}
         mongodb-password: ${{ secrets.MONGO_PASSWORD}}
+
       with:
+        role-to-assume: ${{vars.CI_ROLE }}
         mongodb-uri: ${{ vars.MONGO_URI }}
         environment: development
         k8s-manifest-dir: kubernetes/development/
+
 
     dev-integration-testing:
         if: contains(github.ref, 'feature/')
