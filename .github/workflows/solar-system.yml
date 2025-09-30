@@ -279,8 +279,8 @@ jobs:
         steps:
           - name: Test URL Output using CURL and JQ
             env:
-               #URL: https://${{ steps.fetch-alb-host.outputs.ALB_HOST }}
-               URL: ${{ needs.dev-deploy.outputs.application-url }}
+               URL: https://${{ steps.fetch-alb-host.outputs.ALB_HOST }}
+              #  URL: ${{ needs.dev-deploy.outputs.application-url }}
             run: |
               echo $URL
               echo "--------------------------------------------"
