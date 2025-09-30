@@ -229,6 +229,13 @@ jobs:
             username: ${{ secrets.DOCKERHUB_USERNAME }}
             password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
+        - name: Set up QEMU emulator
+          uses: docker/setup-qemu-action@v3
+
+
+        - name: Set up Docker Buildx
+          uses: docker/setup-buildx-action@v3
+
         - name: Docker Build For Testing
           uses: docker/build-push-action@v4
           with:
@@ -258,7 +265,7 @@ jobs:
             context: .
             push: true
             tags: |
-                ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
+                ${{ secrets.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
        
 
     dev-deploy:
