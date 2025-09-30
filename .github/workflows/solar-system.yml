@@ -260,15 +260,15 @@ jobs:
       if: contains(github.ref, 'feature/')
       needs: docker
       uses: ./.github/workflows/reuse-deployment.yml
-      secrets: 
-        CI_ROLE: ${{ secrets.CI_ROLE }}
-        mongodb-password: ${{ secrets.MONGO_PASSWORD}}
-
       with:
-        role-to-assume: ${{vars.CI_ROLE }}
         mongodb-uri: ${{ vars.MONGO_URI }}
         environment: development
         k8s-manifest-dir: kubernetes/development/
+      secrets: 
+        CI_ROLE: ${{ secrets.CI_ROLE }} 
+        mongodb-password: ${{ secrets.MONGO_PASSWORD}}
+
+  
 
 
     dev-integration-testing:

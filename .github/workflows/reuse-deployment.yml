@@ -21,9 +21,7 @@ on:
             default: dev
             required: true
             type: string
-        role-to-assume:
-            required: true
-            type: string 
+
       outputs:
         application-url:
            value: ${{ jobs.reuse-deploy.outputs.ALB_HOST }} 
