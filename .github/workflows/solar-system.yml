@@ -291,6 +291,7 @@ jobs:
       needs: docker
       uses: ./.github/workflows/reuse-deployment.yml 
       secrets: 
+        CI_ROLE: ${{ secrets.CI_ROLE }} 
         mongodb-password: ${{ secrets.MONGO_PASSWORD}}
       with:
         mongodb-uri: ${{ vars.MONGO_URI }}

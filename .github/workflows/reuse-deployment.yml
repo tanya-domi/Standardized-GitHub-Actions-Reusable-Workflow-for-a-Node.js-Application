@@ -21,7 +21,9 @@ on:
             default: dev
             required: true
             type: string
-
+        role-to-assume:
+            required: true
+            type: string 
       outputs:
         application-url:
            value: ${{ jobs.reuse-deploy.outputs.ALB_HOST }} 
@@ -29,7 +31,7 @@ on:
         mongodb-password:
           required: true
         CI_ROLE:
-           required: true
+          required: true
 
 
 jobs:
