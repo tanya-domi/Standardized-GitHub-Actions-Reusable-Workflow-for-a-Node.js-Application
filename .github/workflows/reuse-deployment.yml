@@ -21,9 +21,7 @@ on:
             default: dev
             required: true
             type: string
-        # role-to-assume:
-        #     required: true
-        #     type: string 
+      
       outputs:
         application-url:
            value: ${{ jobs.reuse-deploy.outputs.ALB_HOST }} 
@@ -87,15 +85,15 @@ jobs:
               run: |
                 cat ${{ inputs.k8s-manifest-dir }}*.yaml
 
-            - name: Create MongoDB Secret
-              run: |
-                kubectl -n ${{ vars.NAMESPACE }} create secret generic mongo-db-creds \
-                --from-literal=MONGO_URI=${{ inputs.mongodb-uri }} \
-                --from-literal=MONGO_USERNAME=${{ vars.MONGO_USERNAME }} \
-                --from-literal=MONGO_PASSWORD=${{ secrets.mongodb-password }} \
-                --save-config \
-                --dry-run=client \
-                -o yaml | kubectl apply -f -
+            # - name: Create MongoDB Secret
+            #   run: |
+            #     kubectl -n ${{ vars.NAMESPACE }} create secret generic mongo-db-creds \
+            #     --from-literal=MONGO_URI=${{ inputs.mongodb-uri }} \
+            #     --from-literal=MONGO_USERNAME=${{ vars.MONGO_USERNAME }} \
+            #     --from-literal=MONGO_PASSWORD=${{ secrets.mongodb-password }} \
+            #     --save-config \
+            #     --dry-run=client \
+            #     -o yaml | kubectl apply -f -
             
             - name: Deploy to Dev Env
               run: |
