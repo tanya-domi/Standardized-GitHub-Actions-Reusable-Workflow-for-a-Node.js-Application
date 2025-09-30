@@ -58,12 +58,13 @@ jobs:
           id: nodejs-unit-testing-step
           run: npm test
 
-        - name: Archive Test Result
-          if:  always()
+        - name: Archive Test Results
+          if: always()
           uses: actions/upload-artifact@v4
           with:
-            name: Mocha-Test-Result
+            name: Mocha-Test-Result-${{ matrix.nodejs_version }}-${{ matrix.operating_system }}
             path: test-results.xml
+            retention-days: 5
 
     code-coverage:
         name: Code Coverage
