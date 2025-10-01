@@ -254,6 +254,10 @@ jobs:
             push: true
             tags: |
                 ${{ secrets.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
+
+        - name: Update K8s Deployment manifest
+          run: |
+            sed -i "s|<GIT_SHA>|${GITHUB_SHA}|g" kubernetes/deployment.yaml
        
 
     dev-deploy:
