@@ -68,18 +68,18 @@ jobs:
               run: |
                 echo "INGRESS_HOSTNAME=$(kubectl -n ${{ vars.NAMESPACE }} get ingress solar-system -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')" >> $GITHUB_ENV
 
-            - name: Replace Token in Manifest files
-              uses: cschleiden/replace-tokens@v1
-              with:
-                tokenPrefix: '_{_'
-                tokenSuffix: '_}_'
-                files: '["${{ inputs.k8s-manifest-dir }}*.yaml"]'
-              env:
-                NAMESPACE: ${{ vars.NAMESPACE }}
-                REPLICAS: ${{ vars.REPLICAS }}
-                IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
-                CERT_ARN: ${{ env.CERT_ARN }}
-                INGRESS_HOSTNAME: ${{ env.INGRESS_HOSTNAME }}
+            # - name: Replace Token in Manifest files
+            #   uses: cschleiden/replace-tokens@v1
+            #   with:
+            #     tokenPrefix: '_{_'
+            #     tokenSuffix: '_}_'
+            #     files: '["${{ inputs.k8s-manifest-dir }}*.yaml"]'
+            #   env:
+            #     NAMESPACE: ${{ vars.NAMESPACE }}
+            #     REPLICAS: ${{ vars.REPLICAS }}
+            #     IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
+            #     CERT_ARN: ${{ env.CERT_ARN }}
+            #     INGRESS_HOSTNAME: ${{ env.INGRESS_HOSTNAME }}
                
             - name: Check files
               run: |
