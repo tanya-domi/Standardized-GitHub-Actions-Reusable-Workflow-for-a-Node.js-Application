@@ -2,6 +2,14 @@ name: Solar System Workflow
 
 on: 
   workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        description: Select target environment
+        options:
+          - dev
+          - prod
+        required: true
   push:
     branches:
       - main
@@ -83,11 +91,6 @@ jobs:
         steps:
         - name: Checkout Repository
           uses: actions/checkout@v4
-
-        # - name: Setup NodeJS Version - 18
-        #   uses: actions/setup-node@v3
-        #   with:
-        #     node-version: 18
 
         - name: Composite Action - Cache & Install NPM Packages
           uses: ./.github/custom-actions/npm-action
@@ -262,21 +265,14 @@ jobs:
       uses: ./.github/workflows/reuse-deployment.yml
       with:
         mongodb-uri: ${{ vars.MONGO_URI }}
-        environment: development
+        environment: dev
         k8s-manifest-dir: kubernetes/development/
       secrets: 
         CI_ROLE: ${{ secrets.CI_ROLE }} 
         mongodb-password: ${{ secrets.MONGO_PASSWORD}}
 
-    # output-url:
-    #   runs-on: ubuntu-latest
-    #   needs: dev-deploy
-    #   steps:
-    #   - name: Output ALB Host URL
-    #     run: |
-    #      echo "The application URL is: ${{ needs.dev-deploy.outputs.alb_host_url }}"
+ 
 
-  
     dev-integration-testing:
         if: contains(github.ref, 'feature/')
         name: Dev Integration Testing
@@ -312,9 +308,8 @@ jobs:
         mongodb-password: ${{ secrets.MONGO_PASSWORD}}
       with:
         mongodb-uri: ${{ vars.MONGO_URI }}
-        environment: production
+        environment: prod
         k8s-manifest-dir: kubernetes/production/
-
 
       
     prod-integration-testing:
@@ -325,7 +320,7 @@ jobs:
         steps:
            - name: Test `/live` Endpoint
              env:
-               INGRESS_HOST: solar-system-dev.dominicsheytanya.org  
+               INGRESS_HOST: solar-system-prod.dominicsheytanya.org  
              run: |
                  echo "Testing endpoint: http://$INGRESS_HOST/live"
 
