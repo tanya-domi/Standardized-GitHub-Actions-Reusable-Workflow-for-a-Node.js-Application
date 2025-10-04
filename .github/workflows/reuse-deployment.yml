@@ -78,23 +78,22 @@ jobs:
             - name: Create MongoDB secret
               run: kubectl -n dev create secret generic mongo-db-creds --from-literal=MONGO_USERNAME=${{ vars.MONGO_USERNAME }} --from-literal=MONGO_PASSWORD=${{ secrets.mongodb-password }} --dry-run=client -o yaml | kubectl apply -f -
             
-            - name: Deploy to Dev Env
-              run: |
-               kubectl apply -f ${{ inputs.k8s-manifest-dir }}
-
             - name: Fetch ALB Host
               id: fetch-alb-host
               run: |
-               for i in {1..20}; do
-               HOST=$(kubectl -n dev get ingress solar-system -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-               if [ -n "$HOST" ]; then break; fi
-                  echo "Waiting for ALB DNS..."
-                  sleep 15
-                done
-                echo "ALB_HOST=$HOST" >> $GITHUB_OUTPUT
+                 echo "Fetching ALB hostname for ingress 'solar-system'..."
+                 for i in {1..20}; do
+                    HOST=$(kubectl -n dev get ingress solar-system -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || true)
+                    if [ -n "$HOST" ]; then
+                      echo " Found ALB host: $HOST"
+                      break
+                    fi
+                    echo Attempt $i/20: Waiting for ALB DNS to become available..."
+                    sleep 15
+                  done
 
-            
-          
-            
-
-            
+                  if [ -z "$HOST" ]; then
+                    echo " Failed to fetch ALB hostname after 20 attempts."
+                    exit 1
+                  fi
+                  echo "ALB_HOST=$HOST" >> $GITHUB_OUTPUT
