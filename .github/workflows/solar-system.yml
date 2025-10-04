@@ -288,7 +288,7 @@ jobs:
 
           - name: Test /live endpoint
             env:
-              URL: https://${{ needs.dev-deploy.outputs.alb_host }}
+              URL: https://${{ needs.dev-deploy.outputs.alb_host_url }}
             run: |
               if [ -z "${{ needs.dev-deploy.outputs.alb_host_url }}" ]; then
                 echo "ALB host not found!"
