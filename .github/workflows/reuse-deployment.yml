@@ -69,37 +69,10 @@ jobs:
                 kubectl version --short
                 echo ---------------------------------------------------
                 kubectl get nodes
-            
-            - name: Save ALB Ingress Hostname as a GITHUB Environment Variable
-              run: |
-                echo "INGRESS_HOSTNAME=$(kubectl -n ${{ vars.NAMESPACE }} get ingress solar-system -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')" >> $GITHUB_ENV
-
-            # - name: Replace Token in Manifest files
-            #   uses: cschleiden/replace-tokens@v1
-            #   with:
-            #     tokenPrefix: '_{_'
-            #     tokenSuffix: '_}_'
-            #     files: '["${{ inputs.k8s-manifest-dir }}*.yaml"]'
-              env:
-                NAMESPACE: ${{ vars.NAMESPACE }}
-                REPLICAS: ${{ vars.REPLICAS }}
-                IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
-                CERT_ARN: ${{ env.CERT_ARN }}
-                INGRESS_HOSTNAME: ${{ env.INGRESS_HOSTNAME }}
                
             - name: Check files
               run: |
                 cat ${{ inputs.k8s-manifest-dir }}*.yaml
-
-            # - name: Create MongoDB Secret
-            #   run: |
-            #     kubectl -n ${{ vars.NAMESPACE }} create secret generic mongo-db-creds \
-            #     --from-literal=MONGO_URI=${{ inputs.mongodb-uri }} \
-            #     --from-literal=MONGO_USERNAME=${{ vars.MONGO_USERNAME }} \
-            #     --from-literal=MONGO_PASSWORD=${{ secrets.mongodb-password }} 
-            #     --save-config \
-            #     --dry-run=client \
-            #     -o yaml | kubectl apply -f -
 
             - name: Create MongoDB secret
               run: kubectl -n dev create secret generic mongo-db-creds --from-literal=MONGO_USERNAME=${{ vars.MONGO_USERNAME }} --from-literal=MONGO_PASSWORD=${{ secrets.mongodb-password }} --dry-run=client -o yaml | kubectl apply -f -
@@ -108,6 +81,11 @@ jobs:
               run: |
                 kubectl apply -f ${{ inputs.k8s-manifest-dir }}
 
+            # - name: Save ALB Ingress Hostname as GITHUB Environment Variable
+            #   run: |
+            #      INGRESS_HOSTNAME=$(kubectl -n ${{ vars.NAMESPACE }} get ingress solar-system -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+            #      echo "INGRESS_HOSTNAME=$INGRESS_HOSTNAME" >> $GITHUB_ENV
+            #      echo "URL=$INGRESS_HOSTNAME" >> $GITHUB_ENV
 
             - name: Fetch ALB Host
               id: fetch-alb-host
@@ -119,5 +97,6 @@ jobs:
                   sleep 15
                 done
                 echo "ALB_HOST=$HOST" >> $GITHUB_OUTPUT
+            
 
-            ##
+            
