@@ -62,7 +62,7 @@ jobs:
             - name: Update K8s manifests with image tag
               run: |
                 sed -i "s|<commit-sha>|${{ github.sha }}|g" kubernetes/development/deployment.yaml
-                #sed -i "s|<commit-sha>|${{ github.sha }}|g" kubernetes/production/deployment.yaml
+                sed -i "s|<commit-sha>|${{ github.sha }}|g" kubernetes/production/deployment.yaml
 
             - name: Fetch Kubernetes Cluster Details
               run: |
