@@ -277,28 +277,28 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-        - name: Run integration tests
-          env:
-            URL: ${{ needs.dev-deploy.outputs.alb_host_url }}
+        # - name: Run integration tests
+        #   env:
+        #     URL: ${{ needs.dev-deploy.outputs.alb_host_url }}
 
-          run: |
-            echo "Testing $URL"
-            curl -s -k https://$URL/live | jq -r '.status' | grep -qi live
+        #   run: |
+        #     echo "Testing $URL"
+        #     curl -s -k https://$URL/live | jq -r '.status' | grep -qi live
 
 
-          # - name: Test /live endpoint
-          #   env:
-          #     URL: https://${{ needs.dev-deploy.outputs.alb_host }}
-          #   run: |
-          #     if [ -z "${{ needs.dev-deploy.outputs.alb_host }}" ]; then
-          #       echo "ALB host not found!"
-          #       exit 1
-          #     fi
+          - name: Test /live endpoint
+            env:
+              URL: https://${{ needs.dev-deploy.outputs.alb_host }}
+            run: |
+              if [ -z "${{ needs.dev-deploy.outputs.alb_host_url }}" ]; then
+                echo "ALB host not found!"
+                exit 1
+              fi
 
-          #     ALB_HOST="${{ needs.dev-deploy.outputs.alb_host }}"
-          #     URL="https://$ALB_HOST"
-          #     echo "Testing $URL"
-          #     curl -s -k "$URL/live" | jq -r .status | grep -i live
+              ALB_HOST="${{ needs.dev-deploy.outputs.alb_host_url }}"
+              URL="https://$ALB_HOST"
+              echo "Testing $URL"
+              curl -s -k "$URL/live" | jq -r .status | grep -i live
 
     prod-deploy:
       if: github.ref == 'refs/heads/main'
