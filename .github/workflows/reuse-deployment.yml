@@ -96,4 +96,4 @@ jobs:
                     echo " Failed to fetch ALB hostname after 20 attempts."
                     exit 1
                   fi
-                  echo "ALB_HOST=$HOST" >> $GITHUB_OUTPUT
+                  echo "ALB_HOST=$HOST" >> "$GITHUB_OUTPUT"
