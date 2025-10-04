@@ -28,7 +28,10 @@ on:
         CI_ROLE:
           required: true
 
-
+      outputs:
+        alb_host:
+          description: The application URL
+          value: ${{ jobs.reuse-deploy.outputs.ALB_HOST_URL }}
 jobs:
     reuse-deploy:
         runs-on: ubuntu-latest
