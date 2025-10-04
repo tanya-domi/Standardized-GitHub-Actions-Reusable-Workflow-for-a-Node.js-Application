@@ -92,3 +92,7 @@ jobs:
                     sleep 15
                  done
                  echo "ALB_HOST=$HOST" >> $GITHUB_OUTPUT
+
+            - name: Use ALB Host URL
+              run: |
+                echo "The application URL is: ${{ steps.fetch-alb-host.outputs.ALB_HOST }}"
