@@ -58,6 +58,12 @@ jobs:
             - name: Configure kubectl
               run: aws eks --region eu-north-1 update-kubeconfig --name my-eks-cluster
 
+
+            - name: Update K8s manifests with image tag
+              run: |
+                sed -i "s|<commit-sha>|${{ github.sha }}|g" kubernetes/development/deployment.yaml
+                sed -i "s|<commit-sha>|${{ github.sha }}|g" kubernetes/production/deployment.yaml
+
             - name: Fetch Kubernetes Cluster Details
               run: |
                 kubectl version --short
@@ -74,26 +80,26 @@ jobs:
             #     tokenPrefix: '_{_'
             #     tokenSuffix: '_}_'
             #     files: '["${{ inputs.k8s-manifest-dir }}*.yaml"]'
-            #   env:
-            #     NAMESPACE: ${{ vars.NAMESPACE }}
-            #     REPLICAS: ${{ vars.REPLICAS }}
-            #     IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
-            #     CERT_ARN: ${{ env.CERT_ARN }}
-            #     INGRESS_HOSTNAME: ${{ env.INGRESS_HOSTNAME }}
+              env:
+                NAMESPACE: ${{ vars.NAMESPACE }}
+                REPLICAS: ${{ vars.REPLICAS }}
+                IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
+                CERT_ARN: ${{ env.CERT_ARN }}
+                INGRESS_HOSTNAME: ${{ env.INGRESS_HOSTNAME }}
                
             - name: Check files
               run: |
                 cat ${{ inputs.k8s-manifest-dir }}*.yaml
 
-            # - name: Create MongoDB Secret
-            #   run: |
-            #     kubectl -n ${{ vars.NAMESPACE }} create secret generic mongo-db-creds \
-            #     --from-literal=MONGO_URI=${{ inputs.mongodb-uri }} \
-            #     --from-literal=MONGO_USERNAME=${{ vars.MONGO_USERNAME }} \
-            #     --from-literal=MONGO_PASSWORD=${{ secrets.mongodb-password }} \
-            #     --save-config \
-            #     --dry-run=client \
-            #     -o yaml | kubectl apply -f -
+            - name: Create MongoDB Secret
+              run: |
+                kubectl -n ${{ vars.NAMESPACE }} create secret generic mongo-db-creds \
+                --from-literal=MONGO_URI=${{ inputs.mongodb-uri }} \
+                --from-literal=MONGO_USERNAME=${{ vars.MONGO_USERNAME }} \
+                --from-literal=MONGO_PASSWORD=${{ secrets.mongodb-password }} \
+                --save-config \
+                --dry-run=client \
+                -o yaml | kubectl apply -f -
             
             - name: Deploy to Dev Env
               run: |
