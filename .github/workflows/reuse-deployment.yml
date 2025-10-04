@@ -31,7 +31,7 @@ on:
       outputs:
         alb_host:
           description: The application URL
-          value: ${{ jobs.reuse-deploy.outputs.ALB_HOST_URL }}
+          value: ${{ jobs.reuse-deploy.outputs.ALB_HOST}}
 jobs:
     reuse-deploy:
         runs-on: ubuntu-latest
