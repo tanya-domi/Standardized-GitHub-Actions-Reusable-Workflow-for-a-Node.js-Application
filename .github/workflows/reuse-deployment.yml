@@ -63,7 +63,7 @@ jobs:
             - name: Update K8s manifests with image tag
               run: |
                 sed -i "s|<commit-sha>|${{ github.sha }}|g" kubernetes/development/deployment.yaml
-                sed -i "s|<commit-sha>|${{ github.sha }}|g" kubernetes/production/deployment.yaml
+                #sed -i "s|<commit-sha>|${{ github.sha }}|g" kubernetes/production/deployment.yaml
 
             - name: Fetch Kubernetes Cluster Details
               run: |
@@ -80,19 +80,18 @@ jobs:
             
             - name: Deploy to Dev Env
               run: |
-                kubectl apply -f ${{ inputs.k8s-manifest-dir }}
+               kubectl apply -f ${{ inputs.k8s-manifest-dir }}
 
             - name: Fetch ALB Host
               id: fetch-alb-host
               run: |
-                for i in {1..20}; do
-                  HOST=$(kubectl -n dev get ingress solar-system -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
-                  if [ -n "$HOST" ]; then break; fi
+               for i in {1..20}; do
+               HOST=$(kubectl -n dev get ingress solar-system -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+               if [ -n "$HOST" ]; then break; fi
                   echo "Waiting for ALB DNS..."
                   sleep 15
                 done
                 echo "ALB_HOST=$HOST" >> $GITHUB_OUTPUT
-                
 
             
           
