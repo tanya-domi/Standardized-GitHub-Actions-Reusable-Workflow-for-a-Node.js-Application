@@ -279,12 +279,16 @@ jobs:
         steps:
           - name: Test /live endpoint
             env:
-              URL: https://${{ needs.deploy-dev.outputs.alb_host }}
+              URL: https://${{ needs.dev-deploy.outputs.alb_host }}
             run: |
+              if [ -z "${{ needs.dev-deploy.outputs.alb_host }}" ]; then
+                echo "ALB host not found!"
+                exit 1
+              fi
+
+              URL=https://${{ needs.dev-deploy.outputs.alb_host }}
               echo "Testing $URL"
               curl -s -k "$URL/live" | jq -r .status | grep -i live
-
-
 
     prod-deploy:
       if: github.ref == 'refs/heads/main'
