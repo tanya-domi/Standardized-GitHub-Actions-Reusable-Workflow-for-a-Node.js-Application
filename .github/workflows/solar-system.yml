@@ -269,40 +269,22 @@ jobs:
         mongodb-password: ${{ secrets.MONGO_PASSWORD}}
 
   
-
-
-    # dev-integration-testing:
-    #     if: contains(github.ref, 'feature/')
-    #     name: Dev Integration Testing
-    #     needs: dev-deploy
-    #     runs-on: ubuntu-latest
-    #     steps:
-    #        - name: Test `/live` Endpoint
-    #          env:
-    #            INGRESS_HOST: solar-system-dev.dominicsheytanya.org  
-    #          run: |
-    #              echo "Testing endpoint: http://$INGRESS_HOST/live"
-
-    #               for i in {1..10}; do
-    #                 if curl -sf http://$INGRESS_HOST/live; then
-    #                   echo "Live endpoint is healthy"
-    #                   exit 0
-    #                fi
-    #                 echo " Waiting for /live endpoint..."
-    #                 sleep 10
-    #               done
+    dev-integration-testing:
+        if: contains(github.ref, 'feature/')
+        name: Dev Integration Testing
+        needs: dev-deploy
+        runs-on: ubuntu-latest
         
-    #               echo "Failed to reach /live endpoint at http://$INGRESS_HOST/live"
-    #               exit 1
+        steps:
+          - name: Test URL Output using CURL and JQ
+            env:
+               URL: https://${{ steps.fetch-alb-host.outputs.ALB_HOST }}
+              #  URL: ${{ needs.dev-deploy.outputs.application-url }}
+            run: |
+              echo $URL
+              echo "--------------------------------------------"
+              curl https://$URL/live -s -k | jq -r .status | grep -i live
 
-          # - name: Test URL Output using CURL and JQ
-          #   env:
-          #      URL: https://${{ steps.fetch-alb-host.outputs.ALB_HOST }}
-          #     #  URL: ${{ needs.dev-deploy.outputs.application-url }}
-          #   run: |
-          #     echo $URL
-          #     echo "--------------------------------------------"
-          #     curl https://$URL/live -s -k | jq -r .status | grep -i live
 
     prod-deploy:
       if: github.ref == 'refs/heads/main'
