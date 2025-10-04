@@ -35,7 +35,7 @@ jobs:
         runs-on: ubuntu-latest
         environment: 
             name: ${{ inputs.environment }}
-            url: https://${{ steps.fetch-alb-host.outputs.alb_host_url }}
+            url: https://${{ steps.fetch-alb-host.outputs.ALB_HOST }}
 
         outputs:
             ALB_HOST: ${{ steps.fetch-alb-host.outputs.ALB_HOST }}
@@ -93,6 +93,3 @@ jobs:
                  done
                  echo "ALB_HOST=$HOST" >> $GITHUB_OUTPUT
 
-            # - name: Use ALB Host URL
-            #   run: |
-            #     echo "The application URL is: ${{ steps.fetch-alb-host.outputs.ALB_HOST }}"
