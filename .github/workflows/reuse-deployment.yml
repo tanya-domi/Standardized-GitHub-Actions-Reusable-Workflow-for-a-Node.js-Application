@@ -58,11 +58,25 @@ jobs:
             - name: Configure kubectl
               run: aws eks --region eu-north-1 update-kubeconfig --name my-eks-cluster
 
-
             - name: Update K8s manifests with image tag
               run: |
-                sed -i "s|<commit-sha>|${{ github.sha }}|g" kubernetes/development/deployment.yaml
-                sed -i "s|<commit-sha>|${{ github.sha }}|g" kubernetes/production/deployment.yaml
+                # Map input environment to actual folder
+                case "${{ inputs.environment }}" in
+                 dev)
+                   MANIFEST_DIR="kubernetes/development"
+                   ;;
+                 prod)
+                   MANIFEST_DIR="kubernetes/production"
+                   ;;
+                 *)
+                   echo "Unknown environment: ${{ inputs.environment }}"
+                   exit 1
+                   ;;
+                esac
+
+                echo "Updating K8s manifests for environment: ${{ inputs.environment }}"
+                echo "Replacing <commit-sha> with ${{ github.sha }} in $MANIFEST_DIR/deployment.yaml"
+                sed -i "s|<commit-sha>|${{ github.sha }}|g" $MANIFEST_DIR/deployment.yaml
 
             - name: Fetch Kubernetes Cluster Details
               run: |
