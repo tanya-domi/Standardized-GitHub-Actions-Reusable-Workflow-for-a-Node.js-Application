@@ -36,9 +36,9 @@ jobs:
     reuse-deploy:
         environment: 
             name: ${{ inputs.environment }}
-            url: https://${{ steps.fetch-alb-host.outputs.ALB_HOST }}
+            #url: https://${{ steps.fetch-alb-host.outputs.ALB_HOST }}
         outputs:
-            alb_host: ${{ steps.deploy.outputs.alb_host }}
+            alb_host: ${{ steps.fetch-alb-host.outputs.ALB_HOST }}
         runs-on: ubuntu-latest
         steps:
             - name: Checkout Repo

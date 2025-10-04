@@ -267,6 +267,7 @@ jobs:
       secrets: 
         CI_ROLE: ${{ secrets.CI_ROLE }} 
         mongodb-password: ${{ secrets.MONGO_PASSWORD}}
+     
 
   
     dev-integration-testing:
@@ -274,16 +275,15 @@ jobs:
         name: Dev Integration Testing
         needs: dev-deploy
         runs-on: ubuntu-latest
-        
+
         steps:
-          - name: Test URL Output using CURL and JQ
+          - name: Test /live endpoint
             env:
-               URL: https://${{ steps.fetch-alb-host.outputs.ALB_HOST }}
-              #  URL: ${{ needs.dev-deploy.outputs.application-url }}
+              URL: https://${{ needs.deploy-dev.outputs.alb_host }}
             run: |
-              echo $URL
-              echo "--------------------------------------------"
-              curl https://$URL/live -s -k | jq -r .status | grep -i live
+              echo "Testing $URL"
+              curl -s -k "$URL/live" | jq -r .status | grep -i live
+
 
 
     prod-deploy:
