@@ -105,7 +105,6 @@ jobs:
               run: kubectl -n dev create secret generic mongo-db-creds --from-literal=MONGO_USERNAME=${{ vars.MONGO_USERNAME }} --from-literal=MONGO_PASSWORD=${{ secrets.mongodb-password }} 
 
             
-            
             - name: Deploy to Dev Env
               run: |
                 kubectl apply -f ${{ inputs.k8s-manifest-dir }}
@@ -122,4 +121,4 @@ jobs:
                 done
                 echo "ALB_HOST=$HOST" >> $GITHUB_OUTPUT
 
-            
+            ##
