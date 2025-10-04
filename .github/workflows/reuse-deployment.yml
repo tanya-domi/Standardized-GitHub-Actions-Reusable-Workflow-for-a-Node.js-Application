@@ -21,10 +21,7 @@ on:
             default: dev
             required: true
             type: string
-      
-      outputs:
-        application-url:
-           value: ${{ jobs.reuse-deploy.outputs.ALB_HOST }} 
+           
       secrets:
         mongodb-password:
           required: true
@@ -34,12 +31,12 @@ on:
 
 jobs:
     reuse-deploy:
-        environment: 
-            name: ${{ inputs.environment }}
-            #url: https://${{ steps.fetch-alb-host.outputs.ALB_HOST }}
+        runs-on: ubuntu-latest
         outputs:
             alb_host: ${{ steps.fetch-alb-host.outputs.ALB_HOST }}
-        runs-on: ubuntu-latest
+        environment: 
+            name: ${{ inputs.environment }}
+        
         steps:
             - name: Checkout Repo
               uses: actions/checkout@v4
@@ -97,6 +94,7 @@ jobs:
                   sleep 15
                 done
                 echo "ALB_HOST=$HOST" >> $GITHUB_OUTPUT
+                echo "URL=$HOST" >> $GITHUB_ENV
             
 
             
