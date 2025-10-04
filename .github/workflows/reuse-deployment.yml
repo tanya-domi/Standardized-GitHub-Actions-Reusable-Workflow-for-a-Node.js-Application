@@ -33,13 +33,12 @@ on:
 jobs:
     reuse-deploy:
         runs-on: ubuntu-latest
-        # environment: 
-        #     name: ${{ inputs.environment }}
-        #     url: https://${{ steps.fetch-alb-host.outputs.ingress_host }}
+        environment: 
+            name: ${{ inputs.environment }}
+            # url: https://${{ steps.fetch-alb-host.outputs.ingress_host }}
 
         outputs:
             ALB_HOST: ${{ steps.fetch-alb-host.outputs.ALB_HOST }}
-        
         
         steps:
             - name: Checkout Repo
