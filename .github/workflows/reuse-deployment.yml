@@ -1,42 +1,45 @@
 name: Deployment - Reusable Workflow
-
 on:
-    workflow_call: 
-      inputs:
-        mongodb-uri:
-          required: true
-          type: string
-        kubectl-version:
-            description: Provide the required Kubectl version
-            default: v1.26.0
-            required: false
-            type: string
-        k8s-manifest-dir:
-            description: Directory containing Kubernetes manifests files
-            default: kubernetes/
-            required: true
-            type: string 
-        environment:
-            description: Provide the Deployment Environment
-            default: dev
-            required: true
-            type: string
-      outputs:
-        application-url:
-           value: ${{ jobs.reuse-deploy.outputs.ALB_HOST }} 
-      secrets:
-        mongodb-password:
-          required: true
+  workflow_call:
+    inputs:
+      environment:
+        description: Deployment environment (dev or prod)
+        required: true
+        default: dev
+        type: string
+      mongodb-uri:
+        description: MongoDB connection URI
+        required: true
+        type: string
+      k8s-manifest-dir:
+        description: Path to Kubernetes manifests
+        required: true
+        type: string
+      kubectl-version:
+        description: kubectl version
+        required: false
+        default: v1.24.0
+        type: string
+    secrets:
+      mongodb-password:
+        required: true
+      CI_ROLE:
+        required: true
 
-
+    outputs:
+      alb_host_url:
+        description: The application URL
+        value: ${{ jobs.reuse-deploy.outputs.ALB_HOST}}
 jobs:
     reuse-deploy:
+        runs-on: ubuntu-latest
         environment: 
             name: ${{ inputs.environment }}
             url: https://${{ steps.fetch-alb-host.outputs.ALB_HOST }}
+
         outputs:
-            alb_host: ${{ steps.deploy.outputs.alb_host }}
-        runs-on: ubuntu-latest
+            ALB_HOST: ${{ steps.fetch-alb-host.outputs.ALB_HOST }}
+        
         steps:
             - name: Checkout Repo
               uses: actions/checkout@v4
@@ -55,57 +58,38 @@ jobs:
             - name: Configure kubectl
               run: aws eks --region eu-north-1 update-kubeconfig --name my-eks-cluster
 
+
+            - name: Update K8s manifests with image tag
+              run: |
+                sed -i "s|<commit-sha>|${{ github.sha }}|g" kubernetes/development/deployment.yaml
+                #sed -i "s|<commit-sha>|${{ github.sha }}|g" kubernetes/production/deployment.yaml
+
             - name: Fetch Kubernetes Cluster Details
               run: |
                 kubectl version --short
                 echo ---------------------------------------------------
                 kubectl get nodes
-            
-            - name: Save ALB Ingress Hostname as a GITHUB Environment Variable
-              run: |
-                echo "INGRESS_HOSTNAME=$(kubectl -n ${{ vars.NAMESPACE }} get ingress solar-system -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')" >> $GITHUB_ENV
-
-            - name: Replace Token in Manifest files
-              uses: cschleiden/replace-tokens@v1
-              with:
-                tokenPrefix: '_{_'
-                tokenSuffix: '_}_'
-                files: '["${{ inputs.k8s-manifest-dir }}*.yaml"]'
-              env:
-                NAMESPACE: ${{ vars.NAMESPACE }}
-                REPLICAS: ${{ vars.REPLICAS }}
-                IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
-                CERT_ARN: ${{ env.CERT_ARN }}
-                INGRESS_HOSTNAME: ${{ env.INGRESS_HOSTNAME }}
                
             - name: Check files
               run: |
                 cat ${{ inputs.k8s-manifest-dir }}*.yaml
 
-            - name: Create MongoDB Secret
+            - name: Create MongoDB secret
+              run: kubectl -n dev create secret generic mongo-db-creds --from-literal=MONGO_USERNAME=${{ vars.MONGO_USERNAME }} --from-literal=MONGO_PASSWORD=${{ secrets.mongodb-password }} --dry-run=client -o yaml | kubectl apply -f -
+
+            - name: Deploy manifests
               run: |
-                kubectl -n ${{ vars.NAMESPACE }} create secret generic mongo-db-creds \
-                --from-literal=MONGO_URI=${{ inputs.mongodb-uri }} \
-                --from-literal=MONGO_USERNAME=${{ vars.MONGO_USERNAME }} \
-                --from-literal=MONGO_PASSWORD=${{ secrets.mongodb-password }} \
-                --save-config \
-                --dry-run=client \
-                -o yaml | kubectl apply -f -
+                 kubectl apply -f ${{ inputs.k8s-manifest-dir }}
+                 echo "Deployment complete."
             
-            - name: Deploy to Dev Env
-              run: |
-                kubectl apply -f ${{ inputs.k8s-manifest-dir }}
-
-
             - name: Fetch ALB Host
               id: fetch-alb-host
               run: |
                 for i in {1..20}; do
                   HOST=$(kubectl -n dev get ingress solar-system -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
                   if [ -n "$HOST" ]; then break; fi
-                  echo "Waiting for ALB DNS..."
-                  sleep 15
-                done
-                echo "ALB_HOST=$HOST" >> $GITHUB_OUTPUT
+                    echo "Waiting for ALB DNS..."
+                    sleep 15
+                 done
+                 echo "ALB_HOST=$HOST" >> $GITHUB_OUTPUT
 
-            

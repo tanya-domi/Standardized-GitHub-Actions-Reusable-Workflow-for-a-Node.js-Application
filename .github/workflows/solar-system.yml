@@ -2,6 +2,14 @@ name: Solar System Workflow
 
 on: 
   workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        description: Select target environment
+        options:
+          - dev
+          - prod
+        required: true
   push:
     branches:
       - main
@@ -83,11 +91,6 @@ jobs:
         steps:
         - name: Checkout Repository
           uses: actions/checkout@v4
-
-        # - name: Setup NodeJS Version - 18
-        #   uses: actions/setup-node@v3
-        #   with:
-        #     node-version: 18
 
         - name: Composite Action - Cache & Install NPM Packages
           uses: ./.github/custom-actions/npm-action
@@ -193,15 +196,10 @@ jobs:
           mv test-results.xml reports/unit-tests/ || true
           mv cobertura-coverage.xml reports/coverage/ || true
 
-      # - name: Upload Test Results & Coverage to Artifactory
-      #   run: |
-      #     jf rt u "reports/unit-tests/*" "local-solar-system/unit-tests/" --build-name=solar-system --build-number=$GITHUB_RUN_NUMBER
-      #     jf rt u "reports/coverage/*" "local-solar-system/coverage/" --build-name=solar-system --build-number=$GITHUB_RUN_NUMBER
-
       - name: Upload Test Results & Coverage to Artifactory
         run: |
-          jf rt u "reports/unit-tests/*" "local-solar-system/unit-tests/${{ github.sha }}/" --build-name=solar-system --build-number=$GITHUB_RUN_NUMBER
-          jf rt u "reports/coverage/*" "local-solar-system/coverage/${{ github.sha }}/" --build-name=solar-system --build-number=$GITHUB_RUN_NUMBER
+          jf rt u "reports/unit-tests/*" "local-solar-system/unit-tests/" --build-name=solar-system --build-number=$GITHUB_RUN_NUMBER
+          jf rt u "reports/coverage/*" "local-solar-system/coverage/" --build-name=solar-system --build-number=$GITHUB_RUN_NUMBER
 
       - name: Publish Build info With JFrog CLI
         run: |
@@ -210,7 +208,7 @@ jobs:
           # Collect VCS details from git and add them to the build
           jf rt build-add-git
           # Publish build info
-          jf rt build-publish ----build-name=solar-system --build-number=$GITHUB_RUN_NUMBER
+          jf rt build-publish 
 
 
     docker:
@@ -228,13 +226,6 @@ jobs:
           with:
             username: ${{ secrets.DOCKERHUB_USERNAME }}
             password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-        # - name: Set up QEMU emulator
-        #   uses: docker/setup-qemu-action@v3
-
-
-        # - name: Set up Docker Buildx
-        #   uses: docker/setup-buildx-action@v3
 
         - name: Docker Build For Testing
           uses: docker/build-push-action@v4
@@ -272,38 +263,54 @@ jobs:
       if: contains(github.ref, 'feature/')
       needs: docker
       uses: ./.github/workflows/reuse-deployment.yml
-      secrets: 
-        mongodb-password: ${{ secrets.MONGO_PASSWORD}}
       with:
         mongodb-uri: ${{ vars.MONGO_URI }}
-        environment: development
+        environment: dev
         k8s-manifest-dir: kubernetes/development/
+      secrets: 
+        CI_ROLE: ${{ secrets.CI_ROLE }} 
+        mongodb-password: ${{ secrets.MONGO_PASSWORD}}
+
+ 
 
     dev-integration-testing:
         if: contains(github.ref, 'feature/')
         name: Dev Integration Testing
         needs: dev-deploy
         runs-on: ubuntu-latest
+
         steps:
-          - name: Test URL Output using CURL and JQ
-            env:
-               #URL: https://${{ steps.fetch-alb-host.outputs.ALB_HOST }}
-               URL: ${{ needs.dev-deploy.outputs.application-url }}
-            run: |
-              echo $URL
-              echo "--------------------------------------------"
-              curl https://$URL/live -s -k | jq -r .status | grep -i live
+        - name: Test `/live` Endpoint
+          env:
+            INGRESS_HOST: solar-system-dev.dominicsheytanya.org  
+          run: |
+             echo "Testing endpoint: http://$INGRESS_HOST/live"
+
+              for i in {1..10}; do
+                if curl -sf http://$INGRESS_HOST/live; then
+                  echo "Live endpoint is healthy"
+                  exit 0
+                fi
+                echo " Waiting for /live endpoint..."
+                sleep 10
+              done
+        
+              echo "Failed to reach /live endpoint at http://$INGRESS_HOST/live"
+              exit 1
+
 
     prod-deploy:
       if: github.ref == 'refs/heads/main'
       needs: docker
       uses: ./.github/workflows/reuse-deployment.yml 
       secrets: 
+        CI_ROLE: ${{ secrets.CI_ROLE }} 
         mongodb-password: ${{ secrets.MONGO_PASSWORD}}
       with:
         mongodb-uri: ${{ vars.MONGO_URI }}
-        environment: production
+        environment: prod
         k8s-manifest-dir: kubernetes/production/
+
       
     prod-integration-testing:
         name: Prod Integration Testing
@@ -311,13 +318,23 @@ jobs:
         needs: prod-deploy
         runs-on: ubuntu-latest
         steps:
-          - name: Test URL Output using CURL and JQ
-            env:
-              URL: ${{ needs.prod-deploy.outputs.application-url }}
-            run: |
-              echo $URL
-              echo "--------------------------------------------"
-              curl https://$URL/live -s -k | jq -r .status | grep -i live
+           - name: Test `/live` Endpoint
+             env:
+               INGRESS_HOST: solar-system-prod.dominicsheytanya.org  
+             run: |
+                 echo "Testing endpoint: http://$INGRESS_HOST/live"
+
+                  for i in {1..10}; do
+                    if curl -sf http://$INGRESS_HOST/live; then
+                      echo "Live endpoint is healthy"
+                      exit 0
+                   fi
+                    echo " Waiting for /live endpoint..."
+                    sleep 10
+                  done
+        
+                  echo "Failed to reach /live endpoint at http://$INGRESS_HOST/live"
+                  exit 1
 
     # slack-notification:
     #   if: always()
@@ -336,3 +353,5 @@ jobs:
     #     #  SLACK_ICON: https://gitlab.com/sidd-harth/solar-system/-/raw/main/images/saturn.png
     #       SLACK_MESSAGE: ':hammer_and_wrench: Triggered by ${{github.actor}}'
     #       SLACK_TITLE: Information
+    ##
+  #
