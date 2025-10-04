@@ -279,7 +279,7 @@ jobs:
         steps:
         - name: Run integration tests
           env:
-            URL: ${{ needs.dev-deploy.outputs.alb_host }}
+            URL: ${{ needs.dev-deploy.outputs.alb_host_url }}
 
           run: |
             echo "Testing $URL"
