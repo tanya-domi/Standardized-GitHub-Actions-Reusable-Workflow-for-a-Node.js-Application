@@ -35,7 +35,7 @@ jobs:
         runs-on: ubuntu-latest
         environment: 
             name: ${{ inputs.environment }}
-            # url: https://${{ steps.fetch-alb-host.outputs.ingress_host }}
+            url: https://${{ steps.fetch-alb-host.outputs.alb_host_url }}
 
         outputs:
             ALB_HOST: ${{ steps.fetch-alb-host.outputs.ALB_HOST }}
