@@ -27,3 +27,20 @@ spec:
         envFrom:
         - secretRef:
             name: mongo-db-creds
+
+        env:
+  - name: MONGO_URI
+    valueFrom:
+      secretKeyRef:
+        name: mongo-db-creds
+        key: MONGO_URI
+  - name: MONGO_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: mongo-db-creds
+        key: MONGO_USERNAME
+  - name: MONGO_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: mongo-db-creds
+        key: MONGO_PASSWORD

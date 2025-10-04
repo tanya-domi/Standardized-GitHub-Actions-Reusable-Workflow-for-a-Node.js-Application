@@ -95,7 +95,7 @@ jobs:
                   prod) NAMESPACE="prod" ;;
                   *) echo "Unknown environment: ${{ inputs.environment }}"; exit 1 ;;
                 esac
-                kubectl -n $NAMESPACE create secret generic mongo-db-creds --from-literal=MONGO_USERNAME=${{ vars.MONGO_USERNAME }} --from-literal=MONGO_PASSWORD=${{ secrets.mongodb-password }} --dry-run=client -o yaml | kubectl apply -f -
+                kubectl -n ${{ inputs.environment }} create secret generic mongo-db-creds --from-literal=MONGO_URI='${{ secrets.MONGO_URI }}' --from-literal=MONGO_USERNAME='${{ vars.MONGO_USERNAME }}' --from-literal=MONGO_PASSWORD='${{ secrets.mongodb-password }}' --dry-run=client -o yaml | kubectl apply -f -
 
 
             # - name: Create MongoDB secret
