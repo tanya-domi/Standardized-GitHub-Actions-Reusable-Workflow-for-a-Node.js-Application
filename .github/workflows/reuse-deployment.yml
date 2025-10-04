@@ -87,9 +87,19 @@ jobs:
             - name: Check files
               run: |
                 cat ${{ inputs.k8s-manifest-dir }}*.yaml
-
+            
             - name: Create MongoDB secret
-              run: kubectl -n dev create secret generic mongo-db-creds --from-literal=MONGO_USERNAME=${{ vars.MONGO_USERNAME }} --from-literal=MONGO_PASSWORD=${{ secrets.mongodb-password }} --dry-run=client -o yaml | kubectl apply -f -
+              run: |
+                case "${{ inputs.environment }}" in
+                  dev) NAMESPACE="dev" ;;
+                  prod) NAMESPACE="prod" ;;
+                  *) echo "Unknown environment: ${{ inputs.environment }}"; exit 1 ;;
+                esac
+                kubectl -n $NAMESPACE create secret generic mongo-db-creds --from-literal=MONGO_USERNAME=${{ vars.MONGO_USERNAME }} --from-literal=MONGO_PASSWORD=${{ secrets.mongodb-password }} --dry-run=client -o yaml | kubectl apply -f -
+
+
+            # - name: Create MongoDB secret
+            #   run: kubectl -n dev create secret generic mongo-db-creds --from-literal=MONGO_USERNAME=${{ vars.MONGO_USERNAME }} --from-literal=MONGO_PASSWORD=${{ secrets.mongodb-password }} --dry-run=client -o yaml | kubectl apply -f -
 
             - name: Deploy manifests
               run: |

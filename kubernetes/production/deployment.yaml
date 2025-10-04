@@ -17,7 +17,7 @@ spec:
         app: solar-system
     spec:
       containers:
-      - image: dts81/solar-system:<commit-sha>
+      - image: dts81/solar-system:<commit-sha> 
         imagePullPolicy: Always
         name: solar-system
         ports:
