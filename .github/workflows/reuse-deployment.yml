@@ -23,6 +23,8 @@ on:
     secrets:
       mongodb-password:
         required: true
+      CI_ROLE:
+        required: true
 
     outputs:
       alb_host_url:
