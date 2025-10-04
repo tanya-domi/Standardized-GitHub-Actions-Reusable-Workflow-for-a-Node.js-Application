@@ -286,7 +286,8 @@ jobs:
                 exit 1
               fi
 
-              URL=https://${{ needs.dev-deploy.outputs.alb_host }}
+              ALB_HOST="${{ needs.dev-deploy.outputs.alb_host }}"
+              URL="https://$ALB_HOST"
               echo "Testing $URL"
               curl -s -k "$URL/live" | jq -r .status | grep -i live
 

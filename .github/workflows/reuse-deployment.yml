@@ -36,9 +36,10 @@ jobs:
     reuse-deploy:
         runs-on: ubuntu-latest
         outputs:
-            alb_host: ${{ steps.fetch-alb-host.outputs.ALB_HOST }}
+            ALB_HOST: ${{ steps.fetch-alb-host.outputs.ALB_HOST }}
         environment: 
             name: ${{ inputs.environment }}
+            url: https://${{ steps.fetch-alb-host.outputs.ingress_host }}
         
         steps:
             - name: Checkout Repo
@@ -91,8 +92,10 @@ jobs:
                   sleep 15
                 done
                 echo "ALB_HOST=$HOST" >> $GITHUB_OUTPUT
-              
+                # echo "ingress_host=$HOST" >> $GITHUB_OUTPUT
 
+            
+          
             
 
             
