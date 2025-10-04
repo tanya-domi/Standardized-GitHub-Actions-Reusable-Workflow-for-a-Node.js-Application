@@ -29,7 +29,7 @@ on:
           required: true
 
       outputs:
-        alb_host:
+        alb_host_url:
           description: The application URL
           value: ${{ jobs.reuse-deploy.outputs.ALB_HOST}}
 jobs:
@@ -92,7 +92,7 @@ jobs:
                   sleep 15
                 done
                 echo "ALB_HOST=$HOST" >> $GITHUB_OUTPUT
-                # echo "ingress_host=$HOST" >> $GITHUB_OUTPUT
+                
 
             
           

@@ -280,6 +280,7 @@ jobs:
         - name: Run integration tests
           env:
             URL: ${{ needs.dev-deploy.outputs.alb_host }}
+
           run: |
             echo "Testing $URL"
             curl -s -k https://$URL/live | jq -r '.status' | grep -qi live
